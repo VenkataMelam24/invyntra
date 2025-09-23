@@ -1,0 +1,5 @@
+date,time,action,item,quantity,unit,location,note,by
+18 sep 2025,20:42:29,add,onions,5.0,kg,,,Barbie
+22 sep 2025,16:10:25,add,rice,10.0,kg,,,
+22 sep 2025,16:10:46,remove,rice,5.0,kg,,,
+22 sep 2025,16:11:02,add,oil,1.0,l,,,

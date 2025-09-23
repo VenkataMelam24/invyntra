@@ -1,0 +1,11 @@
+{
+  "user_id": "1",
+  "onboarded": true,
+  "voices": [
+    {
+      "label": "kittu",
+      "path": "voice_20250917093217_203752.wav",
+      "created_at": "2025-09-17T09:32:22.057782"
+    }
+  ]
+}

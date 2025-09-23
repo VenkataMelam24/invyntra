@@ -1,0 +1,21 @@
+        top = QtWidgets.QHBoxLayout(topbar); top.setContentsMargins(8,6,8,6)
+        # Business name with hover-to-edit
+        self.name_lbl = QtWidgets.QLabel("Business Name")
+        self.name_lbl.setStyleSheet("font-size:22px;font-weight:800;color:#111;")
+        self.name_container = QtWidgets.QWidget()
+        name_row = QtWidgets.QHBoxLayout(self.name_container)
+        name_row.setContentsMargins(0,0,0,0)
+        name_row.setSpacing(6)
+        name_row.addWidget(self.name_lbl)
+        self.edit_name = QtWidgets.QToolButton(); self.edit_name.setText("✎"); self.edit_name.setCursor(QtCore.Qt.PointingHandCursor)
+        self.edit_name.setVisible(False)
+        self.edit_name.clicked.connect(self._edit_business_name)
+        name_row.addWidget(self.edit_name)
+        name_row.addStretch(1)
+        # Show edit icon only on hover
+        self.name_container.installEventFilter(self)
+        self.name_lbl.installEventFilter(self)
+        # Right side logout
+        logout_btn = QtWidgets.QPushButton("Log out"); logout_btn.clicked.connect(self.request_logout.emit)
+        top.addWidget(self.name_container, 1); top.addWidget(logout_btn)
+

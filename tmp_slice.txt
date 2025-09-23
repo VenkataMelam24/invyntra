@@ -1,0 +1,11 @@
+
+        # Content stack
+        self.pages = QtWidgets.QStackedWidget()
+        self.page_barbie = QtWidgets.QLabel("Barbie – placeholder")
+        self.page_barbie.setAlignment(QtCore.Qt.AlignCenter)
+        self.page_inv = QtWidgets.QLabel("Inventory sheet – placeholder")
+        self.page_inv.setAlignment(QtCore.Qt.AlignCenter)
+        self.pages.addWidget(self.page_barbie)
+        self.pages.addWidget(self.page_inv)
+
+        m.addWidget(topbar)

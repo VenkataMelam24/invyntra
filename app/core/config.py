@@ -1,62 +1,38 @@
-# app/core/config.py
-from pydantic_settings import BaseSettings, SettingsConfigDict  # <-- changed import
-from dotenv import load_dotenv
-import os, subprocess
-from pathlib import Path
+import os
+from dataclasses import dataclass
 
-ROOT = Path(__file__).resolve().parents[2]
 
-def _branch_name() -> str:
-    try:
-        out = subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=ROOT,
-            stderr=subprocess.DEVNULL,
-            text=True,
-        ).strip()
-        return out or "dev"
-    except Exception:
-        return "dev"
+@dataclass
+class Settings:
+    APP_NAME: str = os.getenv("APP_NAME", "Invyntra")
+    ENV: str = os.getenv("INVYNTRA_ENV", "dev").lower()  # dev|stage|prod
+    DEBUG: bool = os.getenv("DEBUG", "").lower() in {"1", "true", "yes"} or os.getenv("INVYNTRA_ENV", "dev").lower() != "prod"
 
-def _env_file_path() -> Path:
-    name = os.getenv("APP_ENV")
-    if not name:
-        br = _branch_name()
-        if br == "main":
-            name = "prod"
-        elif br in {"dev", "stage"}:
-            name = br
-        else:
-            name = "dev"
-    return ROOT / f".env.{name}"
+    def __post_init__(self):
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        data_dir = os.path.join(base_dir, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        db_name = f"invyntra_{self.ENV}.sqlite3"
+        self.DATA_DIR = data_dir
+        self.DB_PATH = os.path.join(data_dir, db_name)
+        self.DATABASE_URL = f"sqlite:///{self.DB_PATH}"
+        
+        
 
-ENV_FILE = _env_file_path()
-if ENV_FILE.exists():
-    load_dotenv(ENV_FILE)
-    print(f"[config] loaded {ENV_FILE.name}")
-else:
-    print(f"[config] {ENV_FILE.name} not found (using defaults/OS env)")
 
-class Settings(BaseSettings):
-    ENV: str = "dev"
-    APP_NAME: str = "Invyntra"
-    DEBUG: int = 0
-
-    # pydantic v2 style config
-    model_config = SettingsConfigDict(
-        env_file=ROOT / ".env",          # optional extra overrides
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
+# singleton settings
 settings = Settings()
 
-# --- DB paths/URL derived from the active env ---
-from pathlib import Path
+# Back-compat for modules importing DATABASE_URL directly
+DATABASE_URL = settings.DATABASE_URL
 
-DATA_DIR = (ROOT / "data")
-DATA_DIR.mkdir(exist_ok=True)
+# --- Email / SMTP (optional; if unset, we print emails to console) ---
+SMTP_HOST = os.getenv("SMTP_HOST") or ""
+SMTP_PORT = int(os.getenv("SMTP_PORT") or "587")
+SMTP_USER = os.getenv("SMTP_USER") or ""
+SMTP_PASS = os.getenv("SMTP_PASS") or ""
+SMTP_TLS = (os.getenv("SMTP_TLS") or "1").lower() not in {"0", "false"}
+SMTP_FROM = os.getenv("SMTP_FROM") or (settings.APP_NAME + " <no-reply@local>")
 
-DATABASE_FILE = DATA_DIR / f"invyntra_{settings.ENV}.sqlite3"   # dev/stage/prod-specific file
-DATABASE_URL = f"sqlite:///{DATABASE_FILE}"
-print(f"[config] DB → {DATABASE_FILE.name}")
+# For future deep links in emails
+APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8765")
